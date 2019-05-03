@@ -21,7 +21,7 @@
 
 ##### TODO
 * add backbones: `densenet121`
-* add `FCN16s`, `FCN32s`
+* add `FCN16s`, `FCN8s`
 * add eval scripts
 * add mious
 * find better train params
