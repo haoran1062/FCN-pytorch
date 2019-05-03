@@ -1,0 +1,33 @@
+{
+    "backbone": "resnet18",
+    "gpu_ids": [
+        0
+    ],
+    "base_save_path": "saved_models/fcn32_resnet18_sgd",
+    "vis_log_path": "saved_models/fcn32_resnet18_sgd/vis_log.log",
+    "log_name": "trainLog",
+    "batch_size": 24,
+    "epoch_num": 2000,
+    "with_mask": true,
+    "mask_level": [2048, 2048, 1024, 512, 256, 64, 32],
+    "B": 2,
+    "image_size": 448,
+    "in_channel": 512,
+    "clsN": 21,
+    "stop_down_iter":300,
+    "lr_adjust_map": {
+        "3": 0.1,
+        "255": 0.001,
+        "405": 0.0001,
+        "705": 0.000001
+
+    },
+    "train_txt_path": "datasets/2012_seg.txt",
+    "test_txt_path": "datasets/2012_seg.txt",
+    "little_val_data_len": 750,
+    "show_img_iter_during_train":5,
+    "show_img_iter_during_val":50,
+    "run_full_test_mAP_thresh": 0.585,
+    "resume_from_path": null,
+    "resume_epoch": 0
+}
