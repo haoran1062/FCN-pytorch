@@ -1,6 +1,6 @@
 ### FCN Simple Implementation by Pytorch
 * backbones support: `resnet18`, `resnet50`
-* finished: `FCN32s`
+* finished: `FCN32s`, `FCN16s`
 * visual by `visdom`
 
 ##### run train
@@ -21,7 +21,7 @@
 
 ##### TODO
 * add backbones: `densenet121`
-* add `FCN16s`, `FCN8s`
+* add `FCN8s`
 * add eval scripts
 * add mious
 * find better train params

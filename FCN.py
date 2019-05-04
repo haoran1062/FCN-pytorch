@@ -39,11 +39,41 @@ class FCN32(nn.Module):
         x = self.dbn32(self.relu(self.DCN32(x)))
         return x 
 
+class FCN16(nn.Module):
+
+    def __init__(self, backbone, in_channel=512, num_classes=21):
+        super(FCN16, self).__init__()
+        self.backbone = backbone
+        self.cls_num = num_classes
+
+        self.relu    = nn.ReLU(inplace=True)
+        self.Conv1x1 = nn.Conv2d(in_channel, self.cls_num, kernel_size=1)
+        self.Conv1x1_x4 = nn.Conv2d(int(in_channel/2), self.cls_num, kernel_size=1)
+        self.bn1 = nn.BatchNorm2d(self.cls_num)
+        self.DCN2 = nn.ConvTranspose2d(self.cls_num, self.cls_num, kernel_size=4, stride=2, dilation=1, padding=1)
+        self.DCN2.weight.data = bilinear_init(self.cls_num, self.cls_num, 4)
+        self.dbn2 = nn.BatchNorm2d(self.cls_num)
+
+        self.DCN16 = nn.ConvTranspose2d(self.cls_num, self.cls_num, kernel_size=32, stride=16, dilation=1, padding=8)
+        self.DCN16.weight.data = bilinear_init(self.cls_num, self.cls_num, 32)
+        self.dbn16 = nn.BatchNorm2d(self.cls_num)
+    
+
+    def forward(self, x):
+        x0, x1, x2, x3, x4, x5, x6 = self.backbone(x)
+        x = self.bn1(self.relu(self.Conv1x1(x5)))
+        x4 = self.bn1(self.relu(self.Conv1x1_x4(x4)))
+        x = self.dbn2(self.relu(self.DCN2(x)))
+        x = x + x4
+        x = self.dbn16(self.relu(self.DCN16(x)))
+        
+        return x 
+
 if __name__ == "__main__":
     from torchvision import transforms, utils
     device = 'cuda:0'
     backbone = resnet18()
-    model = FCN32(backbone, in_channel=512)
+    model = FCN16(backbone, in_channel=512)
     summary(model.to(device), (3, 448, 448))
 
 

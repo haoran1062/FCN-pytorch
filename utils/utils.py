@@ -8,7 +8,6 @@ import torch.nn.functional as F
 from collections import defaultdict
 from tqdm import tqdm
 from PIL import Image
-from backbones.resnet import resnet18, resnet50
 import torch.nn.functional as F
 
 colormap = [[0,0,0],[128,0,0],[0,128,0], [128,128,0], [0,0,128],
@@ -164,17 +163,6 @@ def create_logger(base_path, log_name):
 
     return logger
 
-def warmming_up_policy(now_iter, now_lr, stop_down_iter=1000):
-    if now_iter <= stop_down_iter:
-        now_lr += 0.000001
-    return now_lr
-
-def learning_rate_policy(now_iter, now_epoch, now_lr, lr_adjust_map, stop_down_iter=1000):
-    now_lr = warmming_up_policy(now_iter, now_lr, stop_down_iter)
-    if now_iter >= stop_down_iter and now_epoch in lr_adjust_map.keys():
-        now_lr = lr_adjust_map[now_epoch]
-
-    return now_lr
 
 def get_config_map(file_path):
     config_map = json.loads(open(file_path).read())
@@ -185,61 +173,7 @@ def get_config_map(file_path):
     config_map['batch_size'] *= len(config_map['gpu_ids'])
     return config_map
 
-def init_model(config_map, backbone_type_list=['resnet18', 'resnet50']):
-    assert config_map['backbone'] in backbone_type_list, 'backbone not supported!!!'
-    if config_map['backbone'] == backbone_type_list[0]:
-        backbone_net = resnet18(input_size=config_map['image_size'])
-        resnet = models.resnet18(pretrained=True)
-        new_state_dict = resnet.state_dict()
-        dd = backbone_net.state_dict()
-        for k in new_state_dict.keys():
-            if k in dd.keys() and not k.startswith('fc'):
-                dd[k] = new_state_dict[k]
-        backbone_net.load_state_dict(dd)
 
-    if config_map['backbone'] == backbone_type_list[1]:
-        backbone_net = resnet50(input_size=config_map['image_size'])
-        resnet = models.resnet50(pretrained=True)
-        new_state_dict = resnet.state_dict()
-        dd = backbone_net.state_dict()
-        for k in new_state_dict.keys():
-            if k in dd.keys() and not k.startswith('fc'):
-                dd[k] = new_state_dict[k]
-        backbone_net.load_state_dict(dd)
-
-    return backbone_net
-
-def init_lr(config_map):
-    learning_rate = 0.0
-    if config_map['resume_epoch'] > 0:
-        for k, v in config_map['lr_adjust_map'].items():
-            if k <= config_map['resume_epoch']:
-                learning_rate = v 
-    return learning_rate
-
-def cross_entropy2d(input, target, weight=None, size_average=True):
-    # input: (n, c, h, w), target: (n, h, w)
-    n, c, h, w = input.size()
-    print(target.shape)
-    # log_p: (n, c, h, w)
-    log_p = F.log_softmax(input, dim=1)
-    print(log_p.shape)
-    # log_p: (n*h*w, c)
-    print(n, c, h, w)
-    log_p = log_p.permute((0, 2, 3, 1))
-    target = target.permute((0, 2, 3, 1))
-    # log_p = log_p.transpose(1, 2).transpose(2, 3).contiguous()
-    print(log_p.shape)
-    # log_p = log_p[target.view(n, h, w, 1).repeat(1, 1, 1, c) >= 0]
-
-    log_p = log_p.contiguous().view(-1, c)
-    # target: (n*h*w,)
-    mask = target >= 0
-    target = target[mask]
-    loss = F.nll_loss(log_p, target, weight=weight, reduction='sum')
-    if size_average:
-        loss /= mask.data.sum()
-    return loss
 
 def addImage(img, img1): 
     

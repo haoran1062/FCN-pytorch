@@ -15,12 +15,13 @@ from torchsummary import summary
 from collections import defaultdict
 from tqdm import tqdm
 from copy import deepcopy
+from utils.train_utils import *
 from utils.visual import Visual
 from FCN import FCN32
 
 parser = argparse.ArgumentParser(
     description='FCN Training params')
-parser.add_argument('--config', default='configs/mask_resnet_sgd_7x7.json')
+parser.add_argument('--config', default='configs/fcn32_resnet18_sgd.json')
 args = parser.parse_args()
 
 config_map = get_config_map(args.config)
@@ -28,9 +29,9 @@ config_map = get_config_map(args.config)
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 learning_rate = init_lr(config_map)
 
-backbone_net = init_model(config_map).to(device)
-FCN_net = FCN32(backbone_net, in_channel=config_map['in_channel'])
-backbone_net_p = nn.DataParallel(FCN_net.to(device), device_ids=config_map['gpu_ids'])
+FCN_net = init_model(config_map).to(device)
+# FCN32(backbone_net, in_channel=config_map['in_channel'])
+backbone_net_p = nn.DataParallel(FCN_net, device_ids=config_map['gpu_ids'])
 if config_map['resume_from_path']:
     backbone_net_p.load_state_dict(torch.load(config_map['resume_from_path']))
 
