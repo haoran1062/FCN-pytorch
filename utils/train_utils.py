@@ -1,10 +1,10 @@
 # encoding:utf-8
 from backbones.resnet import resnet18, resnet50
-from FCN import FCN32, FCN16
+from FCN import FCN32, FCN16, FCN8
 
 from torchvision import models
 
-def init_model(config_map, backbone_type_list=['resnet18', 'resnet50'], FCN_type_list=['FCN32s', 'FCN16s']):
+def init_model(config_map, backbone_type_list=['resnet18', 'resnet50'], FCN_type_list=['FCN32s', 'FCN16s', 'FCN8s']):
     assert config_map['backbone'] in backbone_type_list, 'backbone not supported!!!'
     assert config_map['FCN_type'] in FCN_type_list, 'backbone not supported!!!'
     if config_map['backbone'] == backbone_type_list[0]:
@@ -33,6 +33,8 @@ def init_model(config_map, backbone_type_list=['resnet18', 'resnet50'], FCN_type
     if config_map['FCN_type'] == FCN_type_list[1]:
         fcn = FCN16(backbone_net, in_channel=config_map['in_channel'])
 
+    if config_map['FCN_type'] == FCN_type_list[2]:
+        fcn = FCN8(backbone_net, in_channel=config_map['in_channel'])
 
     return fcn
 
